@@ -40,7 +40,7 @@ After that, we can run the software eNB & Ue part.
 $ sudo chmod +x ran.sh
 $ sudo ./ran.sh
 ```
-For Unemploymen 
+For Unemployment 
 ```bash
 # in 4G-OAI Directory
 $ sudo docker-compose down

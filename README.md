@@ -28,7 +28,7 @@ we can see docker container status.
 ```bash
 $ sudo docker ps -a
 ```
-* Note that all containers must be in up.
+* that all containers must be in up.
 
 command For MME logs:
 ```bash

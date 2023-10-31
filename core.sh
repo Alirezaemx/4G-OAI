@@ -1,6 +1,6 @@
 #!/bin/sh
 docker-compose up -d db_init
-sleep 15
+sleep 20
 docker logs rfsim4g-db-init --follow
 sleep 5
 docker rm rfsim4g-db-init

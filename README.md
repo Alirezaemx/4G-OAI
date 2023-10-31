@@ -45,6 +45,7 @@ $ git clone https://github.com/Alirezaemx/4G-OAI.git
 we can run 4G core with below Command.
 ```bash
 $ cd 4G-OAI
+$ sudo chmod +x entrypoint.sh
 $ sudo chmod +x core.sh
 $ sudo ./core.sh
 ```

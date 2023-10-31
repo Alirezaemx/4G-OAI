@@ -40,6 +40,10 @@ After that, we can run the software eNB & Ue part.
 $ sudo chmod +x ran.sh
 $ sudo ./ran.sh
 ```
+If all the steps are done correctly, we should have such a result.
+<p align="center">
+  <img src="Result.png" title="MME Logs">
+</p>
 For Unemployment 
 ```bash
 # in 4G-OAI Directory

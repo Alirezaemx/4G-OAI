@@ -1,7 +1,25 @@
 # 4G-OAI
 4G Network, base on OAI. 
 for run OAI 4G Network:
-first we need install docker & docker compose, after we can pull docker images. 
+first we need install docker & docker compose, after we can pull docker images.
+install Docker and Docker compose:
+```bash
+sudo apt install -y git net-tools putty
+
+# https://docs.docker.com/engine/install/ubuntu/
+sudo apt install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Add your username to the docker group, otherwise you will have to run in sudo mode.
+sudo usermod -a -G docker $(whoami)
+reboot
+```
+Pull Docker images.
 ```bash
 $ docker pull cassandra:2.1
 $ docker pull redis:6.0.5
@@ -13,7 +31,13 @@ $ docker pull oaisoftwarealliance/trf-gen-cn5g:latest
 
 $ docker pull oaisoftwarealliance/oai-enb:develop
 $ docker pull oaisoftwarealliance/oai-lte-ue:develop
-``` 
+```
+or use below script:
+```console
+# in 4G-OAI Directory
+$ sudo chmod +x get.sh
+$ sudo ./get.sh
+```
 clone this repository,
 ```bash
 $ git clone https://github.com/Alirezaemx/4G-OAI.git
@@ -44,8 +68,9 @@ If all the steps are done correctly, we should have such a result.
 <p align="center">
   <img src="Result.png" title="MME Logs">
 </p>
-For Unemployment 
-```bash
+
+For Unemployment: 
+```console
 # in 4G-OAI Directory
 $ sudo docker-compose down
 ```

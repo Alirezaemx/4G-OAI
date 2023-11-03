@@ -48,9 +48,6 @@ $ cd 4G-OAI
 $ sudo chmod +x entrypoint.sh
 $ sudo chmod +x core.sh
 $ sudo ./core.sh
-# in Another Terminal
-$ sudo chmod +x Capture.sh
-$ sudo ./Capture.sh
 ```
 we can see docker container status.
 ```bash

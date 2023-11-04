@@ -48,9 +48,6 @@ $ cd 4G-OAI
 $ sudo chmod +x entrypoint.sh
 $ sudo chmod +x core.sh
 $ sudo ./core.sh
-# in Another Terminal
-$ sudo chmod +x Capture.sh
-$ sudo ./Capture.sh
 ```
 we can see docker container status.
 ```bash
@@ -60,7 +57,7 @@ $ sudo docker ps -a
 
 command For MME logs:
 ```bash
-$ sudo docker exec rfsim4g-magma-mme /bin/bash -c "cat /var/log/mme.log"
+$ sudo chmod +x log.sh
 ```
 After that, we can run the software eNB & Ue part.
 ```bash

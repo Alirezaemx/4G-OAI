@@ -41,6 +41,8 @@ $ sudo ./get.sh
 clone this repository,
 ```bash
 $ git clone https://github.com/Alirezaemx/4G-OAI.git
+$ cd 4G-OAI
+$ git checkout main
 ```
 we can run 4G core with below Command.
 ```bash

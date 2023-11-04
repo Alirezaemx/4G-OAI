@@ -3,7 +3,7 @@ version: '3.8'
 services:
     cassandra:
         image: cassandra:2.1
-        container_name: rfsim4g-cassandra
+        container_name: cassandra
         networks:
             private_net:
                 ipv4_address: 192.168.68.2
@@ -18,8 +18,8 @@ services:
 
     db_init:
         image: cassandra:2.1
-        container_name: rfsim4g-db-init
-        depends_on: [cassandra]
+        container_name: db-init
+        depends_on: [ cassandra ]
         deploy:
             restart_policy:
                 condition: on-failure
@@ -33,9 +33,9 @@ services:
 
     oai_hss:
         image: oaisoftwarealliance/oai-hss:latest
-        container_name: rfsim4g-oai-hss
+        container_name: oai-hss
         privileged: true
-        depends_on: [cassandra]
+        depends_on: [ cassandra ]
         networks:
             private_net:
                 ipv4_address: 192.168.68.3
@@ -60,7 +60,7 @@ services:
 
     redis:
         image: redis:6.0.5
-        container_name: rfsim4g-redis
+        container_name: redis
         privileged: true
         networks:
             public_net:
@@ -76,10 +76,10 @@ services:
 
     magma_mme:
         image: oaisoftwarealliance/magma-mme:latest
-        container_name: rfsim4g-magma-mme
+        container_name: magma-mme
         hostname: mme
         privileged: true
-        depends_on: [oai_hss, redis]
+        depends_on: [ oai_hss, redis ]
         networks:
             public_net:
                 ipv4_address: 192.168.61.3
@@ -106,8 +106,8 @@ services:
     oai_spgwc:
         image: oaisoftwarealliance/oai-spgwc:latest
         privileged: true
-        depends_on: [magma_mme]
-        container_name: rfsim4g-oai-spgwc
+        depends_on: [ magma_mme ]
+        container_name: oai-spgwc
         networks:
             public_net:
                 ipv4_address: 192.168.61.4
@@ -115,7 +115,7 @@ services:
             TZ: Europe/Paris
             SGW_INTERFACE_NAME_FOR_S11: eth0
             PGW_INTERFACE_NAME_FOR_SX: eth0
-            DEFAULT_DNS_IPV4_ADDRESS: 192.168.1.1
+            DEFAULT_DNS_IPV4_ADDRESS: 172.21.3.100
             DEFAULT_DNS_SEC_IPV4_ADDRESS: 8.8.4.4
             PUSH_PROTOCOL_OPTION: 'true'
             APN_NI_1: oai.ipv4
@@ -138,8 +138,8 @@ services:
     oai_spgwu:
         image: oaisoftwarealliance/oai-spgwu-tiny:latest
         privileged: true
-        container_name: rfsim4g-oai-spgwu-tiny
-        depends_on: [oai_spgwc]
+        container_name: oai-spgwu-tiny
+        depends_on: [ oai_spgwc ]
         networks:
             public_net:
                 ipv4_address: 192.168.61.5
@@ -168,7 +168,7 @@ services:
     trf_gen:
         image: oaisoftwarealliance/trf-gen-cn5g:latest
         privileged: true
-        container_name: rfsim4g-trf-gen
+        container_name: trf-gen
         networks:
             public_net:
                 ipv4_address: 192.168.61.11
@@ -180,17 +180,36 @@ services:
             retries: 5
 
     oai_enb0:
-        image: oaisoftwarealliance/oai-enb:develop
+        image: oaisoftwarealliance/oai-enb:2022.w46
         privileged: true
-        container_name: rfsim4g-oai-enb
+        container_name: oai-enb
         networks:
             public_net:
                 ipv4_address: 192.168.61.20
         environment:
             TZ: Europe/Paris
+            USE_FDD_MONO: 'yes'
+            RFSIMULATOR: enb
+            ENB_NAME: eNB-rf-sim
+            MCC: '208'
+            MNC: '96'
+            MNC_LENGTH: 2
+            TAC: 1
+            UTRA_BAND_ID: 7
+            DL_FREQUENCY_IN_MHZ: 2680
+            UL_FREQUENCY_OFFSET_IN_MHZ: 120
+            NID_CELL: 10
+            NB_PRB: 25
+            MME_S1C_IP_ADDRESS: 192.168.61.3
+            ENB_S1C_IF_NAME: eth0
+            ENB_S1C_IP_ADDRESS: 192.168.61.20
+            ENB_S1U_IF_NAME: eth0
+            ENB_S1U_IP_ADDRESS: 192.168.61.20
+            ENB_X2_IP_ADDRESS: 192.168.61.20
+            FLEXRAN_ENABLED: 'no'
+            FLEXRAN_INTERFACE_NAME: eth0
+            FLEXRAN_IPV4_ADDRESS: 10.0.0.10
             USE_ADDITIONAL_OPTIONS: --rfsim --log_config.global_log_options level,nocolor,time
-        volumes:
-            - ./enb.band7.25prb.rfsim.conf:/opt/oai-enb/etc/enb.conf
         healthcheck:
             test: /bin/bash -c "pgrep lte-softmodem"
             interval: 10s
@@ -198,9 +217,9 @@ services:
             retries: 5
 
     oai_ue0:
-        image: oaisoftwarealliance/oai-lte-ue:develop
+        image: oaisoftwarealliance/oai-lte-ue:2022.w46
         privileged: true
-        container_name: rfsim4g-oai-lte-ue0
+        container_name: UE0
         networks:
             public_net:
                 ipv4_address: 192.168.61.30
@@ -208,27 +227,268 @@ services:
             - "10000"
         environment:
             TZ: Europe/Paris
-            USE_ADDITIONAL_OPTIONS: --rfsim -C 2680000000 -r 25 --ue-rxgain 140 --ue-txgain 120 --rfsimulator.serveraddr 192.168.61.20 --log_config.global_log_options level,nocolor,time
-        volumes:
-            - ./lteue.usim-ci.conf:/opt/oai-lte-ue/etc/ue_usim.conf
+            HOSTNAME: oai_ue0
+            RFSIMULATOR: 192.168.61.20
+            MCC: '208'
+            MNC: '96'
+            SHORT_IMSI: '0100000001'
+            LTE_KEY: 'fec86ba6eb707ed08905757b1bb44b8f'
+            OPC: 'c42449363bbad02b66d16bc975d77cc1'
+            MSISDN: '001011234561010'
+            HPLMN: 20896
+            USE_ADDITIONAL_OPTIONS: --rfsim -C 2680000000 -r 25 --ue-rxgain 140 --ue-txgain 120 --nokrnmod 1 --log_config.global_log_options level,nocolor,time
+        healthcheck:
+            test: /bin/bash -c "pgrep lte-uesoftmodem"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+    oai_ue1:
+        image: oaisoftwarealliance/oai-lte-ue:2022.w46
+        privileged: true
+        container_name: UE1
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.31
+        expose:
+            - "10001"
+        environment:
+            TZ: Europe/Paris
+            HOSTNAME: oai_ue1
+            RFSIMULATOR: 192.168.61.20
+            MCC: '208'
+            MNC: '96'
+            SHORT_IMSI: '0100000002'
+            LTE_KEY: 'fec86ba6eb707ed08905757b1bb44b8f'
+            OPC: 'c42449363bbad02b66d16bc975d77cc1'
+            MSISDN: '001011234561011'
+            HPLMN: 20896
+            USE_ADDITIONAL_OPTIONS: --rfsim -C 2680000000 -r 25 --ue-rxgain 140 --ue-txgain 120 --nokrnmod 1 --log_config.global_log_options level,nocolor,time
         healthcheck:
             test: /bin/bash -c "pgrep lte-uesoftmodem"
             interval: 10s
             timeout: 5s
             retries: 5
 
+    oai_ue2:
+        image: oaisoftwarealliance/oai-lte-ue:2022.w46
+        privileged: true
+        container_name: UE2
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.32
+        expose:
+            - "10002"
+        environment:
+            TZ: Europe/Paris
+            HOSTNAME: oai_ue2
+            RFSIMULATOR: 192.168.61.20
+            MCC: '208'
+            MNC: '96'
+            SHORT_IMSI: '0100000003'
+            LTE_KEY: 'fec86ba6eb707ed08905757b1bb44b8f'
+            OPC: 'c42449363bbad02b66d16bc975d77cc1'
+            MSISDN: '001011234561012'
+            HPLMN: 20896
+            USE_ADDITIONAL_OPTIONS: --rfsim -C 2680000000 -r 25 --ue-rxgain 140 --ue-txgain 120 --nokrnmod 1 --log_config.global_log_options level,nocolor,time
+        healthcheck:
+            test: /bin/bash -c "pgrep lte-uesoftmodem"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+    oai_ue3:
+        image: oaisoftwarealliance/oai-lte-ue:2022.w46
+        privileged: true
+        container_name: UE3
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.33
+        expose:
+            - "10003"
+        environment:
+            TZ: Europe/Paris
+            HOSTNAME: oai_ue3
+            RFSIMULATOR: 192.168.61.20
+            MCC: '208'
+            MNC: '96'
+            SHORT_IMSI: '0100000004'
+            LTE_KEY: 'fec86ba6eb707ed08905757b1bb44b8f'
+            OPC: 'c42449363bbad02b66d16bc975d77cc1'
+            MSISDN: '001011234561012'
+            HPLMN: 20896
+            USE_ADDITIONAL_OPTIONS: --rfsim -C 2680000000 -r 25 --ue-rxgain 140 --ue-txgain 120 --nokrnmod 1 --log_config.global_log_options level,nocolor,time
+        healthcheck:
+            test: /bin/bash -c "pgrep lte-uesoftmodem"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+    oai_ue4:
+        image: oaisoftwarealliance/oai-lte-ue:2022.w46
+        privileged: true
+        container_name: UE4
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.34
+        expose:
+            - "10004"
+        environment:
+            TZ: Europe/Paris
+            HOSTNAME: oai_ue4
+            RFSIMULATOR: 192.168.61.20
+            MCC: '208'
+            MNC: '96'
+            SHORT_IMSI: '0100000005'
+            LTE_KEY: 'fec86ba6eb707ed08905757b1bb44b8f'
+            OPC: 'c42449363bbad02b66d16bc975d77cc1'
+            MSISDN: '001011234561012'
+            HPLMN: 20896
+            USE_ADDITIONAL_OPTIONS: --rfsim -C 2680000000 -r 25 --ue-rxgain 140 --ue-txgain 120 --nokrnmod 1 --log_config.global_log_options level,nocolor,time
+        healthcheck:
+            test: /bin/bash -c "pgrep lte-uesoftmodem"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+    oai_ue5:
+        image: oaisoftwarealliance/oai-lte-ue:2022.w46
+        privileged: true
+        container_name: UE5
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.35
+        expose:
+            - "10005"
+        environment:
+            TZ: Europe/Paris
+            HOSTNAME: oai_ue5
+            RFSIMULATOR: 192.168.61.20
+            MCC: '208'
+            MNC: '96'
+            SHORT_IMSI: '0100000006'
+            LTE_KEY: 'fec86ba6eb707ed08905757b1bb44b8f'
+            OPC: 'c42449363bbad02b66d16bc975d77cc1'
+            MSISDN: '001011234561012'
+            HPLMN: 20896
+            USE_ADDITIONAL_OPTIONS: --rfsim -C 2680000000 -r 25 --ue-rxgain 140 --ue-txgain 120 --nokrnmod 1 --log_config.global_log_options level,nocolor,time
+        healthcheck:
+            test: /bin/bash -c "pgrep lte-uesoftmodem"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+    oai_ue6:
+        image: oaisoftwarealliance/oai-lte-ue:2022.w46
+        privileged: true
+        container_name: UE6
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.36
+        expose:
+            - "10006"
+        environment:
+            TZ: Europe/Paris
+            HOSTNAME: oai_ue6
+            RFSIMULATOR: 192.168.61.20
+            MCC: '208'
+            MNC: '96'
+            SHORT_IMSI: '0100000007'
+            LTE_KEY: 'fec86ba6eb707ed08905757b1bb44b8f'
+            OPC: 'c42449363bbad02b66d16bc975d77cc1'
+            MSISDN: '001011234561012'
+            HPLMN: 20896
+            USE_ADDITIONAL_OPTIONS: --rfsim -C 2680000000 -r 25 --ue-rxgain 140 --ue-txgain 120 --nokrnmod 1 --log_config.global_log_options level,nocolor,time
+        healthcheck:
+            test: /bin/bash -c "pgrep lte-uesoftmodem"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+    oai_ue7:
+        image: oaisoftwarealliance/oai-lte-ue:2022.w46
+        privileged: true
+        container_name: UE7
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.37
+        expose:
+            - "10007"
+        environment:
+            TZ: Europe/Paris
+            HOSTNAME: oai_ue7
+            RFSIMULATOR: 192.168.61.20
+            MCC: '208'
+            MNC: '96'
+            SHORT_IMSI: '0100000008'
+            LTE_KEY: 'fec86ba6eb707ed08905757b1bb44b8f'
+            OPC: 'c42449363bbad02b66d16bc975d77cc1'
+            MSISDN: '001011234561012'
+            HPLMN: 20896
+            USE_ADDITIONAL_OPTIONS: --rfsim -C 2680000000 -r 25 --ue-rxgain 140 --ue-txgain 120 --nokrnmod 1 --log_config.global_log_options level,nocolor,time
+        healthcheck:
+            test: /bin/bash -c "pgrep lte-uesoftmodem"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+    oai_ue8:
+        image: oaisoftwarealliance/oai-lte-ue:2022.w46
+        privileged: true
+        container_name: UE8
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.38
+        expose:
+            - "10008"
+        environment:
+            TZ: Europe/Paris
+            HOSTNAME: oai_ue8
+            RFSIMULATOR: 192.168.61.20
+            MCC: '208'
+            MNC: '96'
+            SHORT_IMSI: '0100000009'
+            LTE_KEY: 'fec86ba6eb707ed08905757b1bb44b8f'
+            OPC: 'c42449363bbad02b66d16bc975d77cc1'
+            MSISDN: '001011234561012'
+            HPLMN: 20896
+            USE_ADDITIONAL_OPTIONS: --rfsim -C 2680000000 -r 25 --ue-rxgain 140 --ue-txgain 120 --nokrnmod 1 --log_config.global_log_options level,nocolor,time
+        healthcheck:
+            test: /bin/bash -c "pgrep lte-uesoftmodem"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+    oai_ue9:
+        image: oaisoftwarealliance/oai-lte-ue:2022.w46
+        privileged: true
+        container_name: UE9
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.39
+        expose:
+            - "10009"
+        environment:
+            TZ: Europe/Paris
+            HOSTNAME: oai_ue9
+            RFSIMULATOR: 192.168.61.20
+            MCC: '208'
+            MNC: '96'
+            SHORT_IMSI: '0100000010'
+            LTE_KEY: 'fec86ba6eb707ed08905757b1bb44b8f'
+            OPC: 'c42449363bbad02b66d16bc975d77cc1'
+            MSISDN: '001011234561012'
+            HPLMN: 20896
+            USE_ADDITIONAL_OPTIONS: --rfsim -C 2680000000 -r 25 --ue-rxgain 140 --ue-txgain 120 --nokrnmod 1 --log_config.global_log_options level,nocolor,time
+        healthcheck:
+            test: /bin/bash -c "pgrep lte-uesoftmodem"
+            interval: 10s
+            timeout: 5s
+            retries: 5
 networks:
     private_net:
-        name: rfsim4g-oai-private-net
+        name: oai-private-net
         ipam:
             config:
                 - subnet: 192.168.68.0/26
         driver_opts:
-            com.docker.network.bridge.name: "rfsim4g-private"
+            com.docker.network.bridge.name: "private"
     public_net:
-        name: rfsim4g-oai-public-net
+        name: oai-public-net
         ipam:
             config:
                 - subnet: 192.168.61.0/26
         driver_opts:
-            com.docker.network.bridge.name: "rfsim4g-public"
+            com.docker.network.bridge.name: "public"

@@ -29,8 +29,8 @@ $ docker pull oaisoftwarealliance/oai-spgwc:latest
 $ docker pull oaisoftwarealliance/oai-spgwu-tiny:latest
 $ docker pull oaisoftwarealliance/trf-gen-cn5g:latest
 
-$ docker pull oaisoftwarealliance/oai-enb:develop
-$ docker pull oaisoftwarealliance/oai-lte-ue:develop
+$ docker pull ooaisoftwarealliance/oai-enb:2022.w46
+$ docker pull oaisoftwarealliance/oai-lte-ue:2022.w46
 ```
 or use below script:
 ```console

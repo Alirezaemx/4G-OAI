@@ -58,6 +58,7 @@ $ sudo docker ps -a
 command For MME logs:
 ```bash
 $ sudo chmod +x log.sh
+$ sudo ./log.sh
 ```
 After that, we can run the software eNB & Ue part.
 ```bash
@@ -67,7 +68,7 @@ $ sudo ./ran.sh
 ```
 If all the steps are done correctly, we should have such a result.
 <p align="center">
-  <img src="Result.png" title="MME Logs">
+  <img src="10UEs.png" title="MME Logs">
 </p>
 
 For Unemployment: 

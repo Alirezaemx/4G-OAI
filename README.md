@@ -71,6 +71,15 @@ If all the steps are done correctly, we should have such a result.
   <img src="10UEs.png" title="MME Logs">
 </p>
 
+eNB logs with below Command:
+```console
+$ docker logs oai-enb
+```
+HSS logs With below command:
+```console
+$ docker logs oai-hss
+``
+
 For Unemployment: 
 ```console
 # in 4G-OAI Directory

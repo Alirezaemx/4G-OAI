@@ -86,3 +86,10 @@ For Unemployment:
 # in 4G-OAI Directory
 $ sudo docker-compose down
 ```
+
+Capture 4G Network:
+```console
+# in Terminal 4G-OAI
+$ chmod +x Capture.sh
+$ ./Capture.sh
+```

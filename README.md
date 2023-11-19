@@ -91,5 +91,5 @@ Capture 4G Network:
 ```console
 # in Terminal 4G-OAI
 $ chmod +x Capture.sh
-$ ./Capture.sh
+$ sudo ./Capture.sh
 ```

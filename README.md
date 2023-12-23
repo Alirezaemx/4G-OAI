@@ -93,3 +93,9 @@ Capture 4G Network:
 $ chmod +x Capture.sh
 $ sudo ./Capture.sh
 ```
+NSA Mode:
+for NSA mode, we Need to Pull gNodeB image.
+and up 4G core
+
+up eNodeB
+up gNodeB

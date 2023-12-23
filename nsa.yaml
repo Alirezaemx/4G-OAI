@@ -1,0 +1,151 @@
+version: '3.8'
+services:
+    eNB:
+        image: oaisoftwarealliance/oai-enb:2023.w43
+        privileged: true
+        container_name: eNB
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.21
+        environment:
+            TZ: Europe/Paris
+            USE_ADDITIONAL_OPTIONS: --rfsim --log_config.global_log_options level,nocolor,time
+        volumes:
+            - ./eNB.conf:/opt/oai-enb/etc/enb.conf
+        healthcheck:
+            test: /bin/bash -c "pgrep lte-softmodem"
+            interval: 10s
+            timeout: 5s
+            retries: 5    
+    gNB:
+        image: oaisoftwarealliance/oai-gnb:develop
+        privileged: true
+        container_name: gNB
+        environment: 
+            USE_ADDITIONAL_OPTIONS: -E --rfsim --log_config.global_log_options level,nocolor,time
+        #depends_on:
+        #    - trf_gen
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.20
+        volumes:
+            - ./gNB.conf:/opt/oai-gnb/etc/gnb.conf
+        healthcheck:
+            test: /bin/bash -c "pgrep nr-softmodem"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+    gNB2:
+        image: oaisoftwarealliance/oai-gnb:2023.w19
+        privileged: true
+        container_name: gNB2
+        environment: 
+            RFSIMULATOR: server
+            #USE_SA_TDD_MONO: 'yes'
+            enable_x2: 'yes'
+            ipv4: 192.168.61.21
+            GNB_NAME: gNB2
+            #TAC: 40960
+            TAC: 1
+            MCC: '208'
+            MNC: '96'
+            MNC_LENGTH: 2
+            NSSAI_SST: 1
+            NSSAI_SD0: 0
+            NSSAI_SD1: 112233
+            GNB_INTERFACE_NAME_FOR_S1_MME: eth0
+            GNB_IPV4_ADDRESS_FOR_S1_MME: 192.168.61.22
+            GNB_INTERFACE_NAME_FOR_S1U: eth0
+            GNB_IPV4_ADDRESS_FOR_S1U: 192.168.61.22
+            GNB_IPV4_ADDRESS_FOR_X2C: 192.168.61.22   
+            #AMF_IP_ADDRESS: 192.168.61.3
+            #GNB_NGA_IF_NAME: eth0
+            #GNB_NGA_IP_ADDRESS: 192.168.61.22
+            #GNB_NGU_IF_NAME: eth0
+            #GNB_NGU_IP_ADDRESS: 192.168.61.22
+            USE_ADDITIONAL_OPTIONS: --rfsim
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.22
+        healthcheck:
+            test: /bin/bash -c "pgrep nr-softmodem"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+    nr-ue:
+        image: oaisoftwarealliance/oai-nr-ue:develop
+        privileged: true
+        container_name: nr-ue
+        environment: 
+            USE_ADDITIONAL_OPTIONS: -E --rfsim -r 106 --numerology 1 --uicc0.imsi 208960100000002 --band 78 -C 2169080000 --CO -400000000 --ssb 378 --rfsimulator.serveraddr 192.168.61.20 --log_config.global_log_options level,nocolor,time
+        depends_on:
+            - gNB
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.31
+        volumes:
+            - ./nrue.uicc.conf:/opt/oai-nr-ue/etc/nr-ue.conf
+        healthcheck:
+            test: /bin/bash -c "pgrep nr-uesoftmodem"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+    nr-ue1:
+        image: oaisoftwarealliance/oai-nr-ue:develop
+        privileged: true
+        container_name: nr-ue1
+        environment: 
+            RFSIMULATOR: 192.168.61.20
+            USE_ADDITIONAL_OPTIONS: --rfsim -r 106 --numerology 1 -C 3619200000 --nokrnmod --log_config.global_log_options level,nocolor,time
+        depends_on:
+            - gNB
+        volumes:
+            - ./nr-ue.conf:/opt/oai-nr-ue/etc/nr-ue.conf
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.32
+        healthcheck:
+            test: /bin/bash -c "pgrep nr-uesoftmodem"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+    nr-ue2:
+        image: oaisoftwarealliance/oai-nr-ue:2023.w06
+        privileged: true
+        container_name: nr-ue2
+        environment: 
+            RFSIMULATOR: 192.168.61.20
+            FULL_IMSI: '208960000000003'
+            FULL_KEY: 'fec86ba6eb707ed08905757b1bb44b8f'
+            OPC: 'c42449363bbad02b66d16bc975d77cc1'
+            DNN: oai
+            NSSAI_SST: 1
+            NSSAI_SD: 0
+            USE_ADDITIONAL_OPTIONS: --rfsim -r 106 --numerology 1 -C 3619200000 --nokrnmod
+        depends_on:
+            - gNB
+        networks:
+            public_net:
+                ipv4_address: 192.168.61.33
+        healthcheck:
+            test: /bin/bash -c "pgrep nr-uesoftmodem"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+
+networks:
+    private_net:
+        name: oai-private-net
+        ipam:
+            config:
+                - subnet: 192.168.68.0/26
+        driver_opts:
+            com.docker.network.bridge.name: "private"
+    public_net:
+        name: oai-public-net
+        ipam:
+            config:
+                - subnet: 192.168.61.0/26
+        driver_opts:
+            com.docker.network.bridge.name: "public"
